@@ -11,7 +11,7 @@ Basic::Basic( QWidget *parent)
     view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);   
 }
 
-Basic::Basic(type t, QWidget *parent)
+Basic::Basic(WindowType t, QWidget *parent)
     : Basic(parent)
 {    
     setFixed(t);
@@ -24,9 +24,9 @@ Basic::Basic(type t, QWidget *parent)
     //setWindowFlags(Qt::FramelessWindowHint);
     //setWindowFlag(Qt::WindowTitleHint);
     
-    lastHeight = windowHeight;
-    lastWidth = windowWidth;
-    nt = t;
+    viewLastH = lastHeight = windowHeight;
+    viewLastW = lastWidth = windowWidth;
+    type = t;
     
 }
 
@@ -47,7 +47,7 @@ void Basic::getWindowSize()
     
     deskHeight = screenRect.height();
     deskWidth = screenRect.width();
-        
+    
     
 }
 
@@ -62,7 +62,7 @@ void Basic::setWindowSize(int w, int h)
     
 }
 
-void Basic::setFixed(type s)
+void Basic::setFixed(WindowType s)
 {
     if(s == Android){
         deskWidth = screenWindowWidth;
@@ -115,36 +115,85 @@ void Basic::resizeEvent(QResizeEvent *event)
     if(w == h == 0)
         return;//resize(event->oldSize());
     if(w != 0 && h != 0)*/
-    if(timerEventFlag){
-        killTimer(timerEventFlag);
-        timerEventFlag = 0;
+    if(type == WindowType::Scale){
+        if(timerEventFlag){
+            killTimer(timerEventFlag);
+            timerEventFlag = 0;
+        }
+        timerEventFlag = startTimer(50);
     }
-    timerEventFlag = startTimer(50);
+    else if(type == WindowType::Scalein){
+        int tempW = 0, tempH = 0;
+        if(width() > height())
+        {
+            if(width() < lastWidth){
+                tempW = width();
+                tempH = width()*baseSize().height()/baseSize().width();  
+            }
+            else{
+                tempH = height();
+                tempW = height()* baseSize().width()/baseSize().height();  
+                qDebug() << "1";
+            }
+        }
+        else{
+            if( height() < lastHeight){
+                tempH = height();
+                tempW = height()* baseSize().width()/baseSize().height();  
+            }
+            else{
+                tempW = width();
+                tempH = width()*baseSize().height()/baseSize().width();  
+            }
+            qDebug() << "2";
+        }
+        
+        //view.scale(qreal(tempW)/lastWidth,qreal(tempW)/lastWidth);
+        qDebug()<<width()  << height() << tempW << tempH << view.width() << view.height();
+        view.resize(tempW,tempH);
+        view.scale(view.width()/qreal(viewLastW), view.width()/qreal(viewLastW));
+        view.move(width()/2 - view.width()/2, height()/2 - view.height()/2);
+        view.centerOn(0,0);
+        
+        lastHeight = height();
+        lastWidth = width();
+        viewLastW = view.width();
+        viewLastH = view.height();
+        
+    }
     return;
 }
 
 void Basic::timerEvent(QTimerEvent *event)
-{
-    if(width() == windowWidth){
-        windowWidth = height()* baseSize().width()/baseSize().height();
-        windowHeight = height();        
+{       
+    getWindowSize();
+    int viewSceneW = 0, viewSceneH = 0;
+    
+    if(width() == deskWidth && height() == deskHeight){
+        int reduceW = geometry().x(), reduceH = geometry().y();
+        viewSceneW = width()-reduceW;
+        viewSceneH = height()-reduceH;
+        
+    }
+    else if(width() == windowWidth){
+        viewSceneW = windowWidth = height()* baseSize().width()/baseSize().height();
+        viewSceneH = windowHeight = height();  
+        
     }
     else{
-         windowWidth = width();
-         windowHeight = width()*baseSize().height()/baseSize().width();         
+        viewSceneW = windowWidth = width();
+        viewSceneH = windowHeight = width()*baseSize().height()/baseSize().width();         
     }
     killTimer(event->timerId());
     timerEventFlag = 0;
     resize(windowWidth,windowHeight);
-    view.resize(windowWidth,windowHeight);
-    view.scale(qreal(windowWidth)/lastWidth,qreal(windowWidth)/lastWidth);
+    view.resize(viewSceneW,viewSceneH);
+    view.scale(qreal(viewSceneW)/lastWidth,qreal(viewSceneW)/lastWidth);
     view.centerOn(0,0);
     lastHeight = height();
     lastWidth = width();
     
 }
-
-
 
 
 /*
@@ -179,11 +228,11 @@ HWND Basic::getWindowHWND()
     //return FindWindow(NULL,title);
     std::wstring title = titleName.toStdWString();
     const wchar_t* str = title.c_str();
-          
+    
     HWND hq = FindWindow(NULL,str);
     return hq;
 }
-/*
+
 bool Basic::event(QEvent *event)
 {
 
