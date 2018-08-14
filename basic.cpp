@@ -115,81 +115,114 @@ void Basic::resizeEvent(QResizeEvent *event)
     if(w == h == 0)
         return;//resize(event->oldSize());
     if(w != 0 && h != 0)*/
-    if(type == WindowType::Scale){
+    if(type == WindowType::Scale){      //scale模式: 缩放窗口时 窗口大小和窗口内画面全部会符合某个比例
         if(timerEventFlag){
-            killTimer(timerEventFlag);
+            killTimer(timerEventFlag); 
             timerEventFlag = 0;
         }
-        timerEventFlag = startTimer(50);
+        timerEventFlag = startTimer(50); //使用计时器拉开resizeEvent触发间隔 避免内循环(resizeEvent <-> resize)
     }
-    else if(type == WindowType::Scalein){
-        int tempW = 0, tempH = 0;
-        if(width() > height())
-        {
-            if(width() < lastWidth){
+    else if(type == WindowType::ScaleIn){//scaleIn模式 缩放窗口时 仅窗口内内容保持以某个比例缩放
+        int tempW = baseSize().width(), tempH = baseSize().height();
+        int baseW = baseSize().width(), baseH = baseSize().height();
+        
+        if(width() > baseW){
+            if(view.height() < height() && (view.width() >= width())){
                 tempW = width();
-                tempH = width()*baseSize().height()/baseSize().width();  
+                tempH = width()* baseH / baseW;
+                qDebug() << "1 2";
             }
             else{
-                tempH = height();
-                tempW = height()* baseSize().width()/baseSize().height();  
-                qDebug() << "1";
+                if(baseW <= width() && width() < height()* baseW / baseH){
+                    tempW = width();
+                    tempH = width()* baseH / baseW;
+                    qDebug() << "1 3";
+                }
+                else{
+                    tempW = height()* baseW / baseH;
+                    tempH = height();
+                    qDebug() << "1 1";
+                }
             }
         }
-        else{
-            if( height() < lastHeight){
+        else if(width() < baseW){
+            if(view.width() < width() && width() < baseSize().width() && height() <= view.height()){               
+                tempW = height()* baseW / baseH;
                 tempH = height();
-                tempW = height()* baseSize().width()/baseSize().height();  
+                qDebug() << "2 1";                
             }
             else{
-                tempW = width();
-                tempH = width()*baseSize().height()/baseSize().width();  
-            }
-            qDebug() << "2";
+                if(height() <= width()* baseH / baseW){
+                    tempW = height()* baseW / baseH;
+                    tempH = height();
+                    qDebug() << "2 3";
+                }
+                else{
+                    tempW = width();
+                    tempH = width()* baseH / baseW;
+                    qDebug() << "2 2"; 
+                }
+            }         
+        }
+        else if(height() > baseH){
+            tempW = width();
+            tempH = width() * baseH / baseW;
+            qDebug() << "3";
+        }
+        else if(height() < baseH){
+            tempH = height();
+            tempW = height()*baseW / baseH;
+            qDebug() << "4";
         }
         
-        //view.scale(qreal(tempW)/lastWidth,qreal(tempW)/lastWidth);
-        qDebug()<<width()  << height() << tempW << tempH << view.width() << view.height();
-        view.resize(tempW,tempH);
-        view.scale(view.width()/qreal(viewLastW), view.width()/qreal(viewLastW));
-        view.move(width()/2 - view.width()/2, height()/2 - view.height()/2);
-        view.centerOn(0,0);
         
-        lastHeight = height();
-        lastWidth = width();
         viewLastW = view.width();
         viewLastH = view.height();
+        lastHeight = tempH;
+        lastWidth = tempW;
         
+        view.resize(tempW,tempH);
+        view.scale(view.width()/qreal(viewLastW), view.width()/qreal(viewLastW));
+        
+        //将view居中
+        view.move(width()/2 - view.width()/2, height()/2 - view.height()/2);
+        view.centerOn(0,0);           
     }
     return;
 }
 
 void Basic::timerEvent(QTimerEvent *event)
 {       
-    getWindowSize();
+    getWindowSize();  //获取屏幕大小等信息
     int viewSceneW = 0, viewSceneH = 0;
     
-    if(width() == deskWidth && height() == deskHeight){
-        int reduceW = geometry().x(), reduceH = geometry().y();
+    if(width() == deskWidth && height() == deskHeight){       //如果窗口最大化, 则对其进行显示优化
+        int reduceW = geometry().x(), reduceH = geometry().y(); 
+        
+        //减去windows通知栏的大小, 这样设置窗口大小,窗口就不会被windows通知栏遮挡
         viewSceneW = width()-reduceW;
-        viewSceneH = height()-reduceH;
-        
+        viewSceneH = height()-reduceH;        
     }
-    else if(width() == windowWidth){
-        viewSceneW = windowWidth = height()* baseSize().width()/baseSize().height();
-        viewSceneH = windowHeight = height();  
+    else if(width() == windowWidth){ 
         
+        //竖着拉保持比例不变
+        viewSceneW = windowWidth = height()* baseSize().width()/baseSize().height();
+        viewSceneH = windowHeight = height();          
     }
     else{
+        //横着拉保持比例不变
         viewSceneW = windowWidth = width();
         viewSceneH = windowHeight = width()*baseSize().height()/baseSize().width();         
     }
-    killTimer(event->timerId());
-    timerEventFlag = 0;
-    resize(windowWidth,windowHeight);
-    view.resize(viewSceneW,viewSceneH);
-    view.scale(qreal(viewSceneW)/lastWidth,qreal(viewSceneW)/lastWidth);
-    view.centerOn(0,0);
+    
+    killTimer(event->timerId());    //结束计时器 (不及时结束窗口似乎会鬼畜    
+    timerEventFlag = 0;             //重置计时器事件ID
+    
+    resize(windowWidth,windowHeight);   //设置窗口大小
+    view.resize(viewSceneW,viewSceneH); //设置view大小
+    view.scale(qreal(viewSceneW)/lastWidth,qreal(viewSceneW)/lastWidth); //对view的内容进行缩放
+    view.centerOn(0,0);         //将view居中
+    
     lastHeight = height();
     lastWidth = width();
     
@@ -252,6 +285,7 @@ bool Basic::event(QEvent *event)
 }
 
  */
+
 
 
 

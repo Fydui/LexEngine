@@ -7,7 +7,7 @@
 #include <QDebug>
 #include <QTimer>
 #include "item.h"
-enum WindowType{Fix, Android, Scale,Scalein,Free}; 
+enum WindowType{Fix, Android, Scale,ScaleIn,Free}; 
 //窗口固定大小 安卓自适应 等比例缩放(窗口与窗口内) 等比例缩放(窗口内) 自由缩放 
 
 //这个类是比较底层的一些基本管理 他们会在程序运行的时候首先运行 你可以在Basic类中自定义自己的需求

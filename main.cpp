@@ -5,7 +5,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    Basic w(WindowType::Scalein,nullptr);
+    Basic w(WindowType::ScaleIn,nullptr);
     int t = w.heightForWidth(1280);
     
     Item my("C:/My/code/MyObj/MengDie_Widget/resources/Lexington/UI/user_detail_bg1.png");
