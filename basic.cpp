@@ -98,6 +98,7 @@ void Basic::addScene(Scene &s)
 }
 void Basic::addItem(Item &i)
 {
+    i.moveBy(i.px,i.py); 
     scene.addItem(&i);
 }
 void Basic::removeItem(Item &i)
