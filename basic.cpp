@@ -18,12 +18,12 @@ Basic::Basic(WindowType t, QWidget *parent)
     view.setParent(this);
     //scene.addPixmap(QPixmap("C:/My/code/MyObj/MengDie_Widget/resources/image/Lexington_Strap_bikini.png"));
     //scene.addText("Hello");
-    scene.setParent(this);
-    view.resize(windowWidth,windowHeight );          //设置视图范围      
+    //scene.setParent(this);
+    view.resize(windowWidth,windowHeight);          //设置视图范围      
     view.setScene(&scene);
+    scene.setSceneRect(0,0,windowWidth,windowHeight);
     //setWindowFlags(Qt::FramelessWindowHint);
     //setWindowFlag(Qt::WindowTitleHint);
-    
     viewLastH = lastHeight = windowHeight;
     viewLastW = lastWidth = windowWidth;
     type = t;
@@ -123,6 +123,7 @@ void Basic::resizeEvent(QResizeEvent *event)
         timerEventFlag = startTimer(50); //使用计时器拉开resizeEvent触发间隔 避免内循环(resizeEvent <-> resize)
     }
     else if(type == WindowType::ScaleIn){//scaleIn模式 缩放窗口时 仅窗口内内容保持以某个比例缩放
+        
         int tempW = baseSize().width(), tempH = baseSize().height();
         int baseW = baseSize().width(), baseH = baseSize().height();
         
@@ -130,18 +131,18 @@ void Basic::resizeEvent(QResizeEvent *event)
             if(view.height() < height() && (view.width() >= width())){
                 tempW = width();
                 tempH = width()* baseH / baseW;
-                qDebug() << "1 2";
+                //qDebug() << "1 2";
             }
             else{
                 if(baseW <= width() && width() < height()* baseW / baseH){
                     tempW = width();
                     tempH = width()* baseH / baseW;
-                    qDebug() << "1 3";
+                    //qDebug() << "1 3";
                 }
                 else{
                     tempW = height()* baseW / baseH;
                     tempH = height();
-                    qDebug() << "1 1";
+                    //qDebug() << "1 1";
                 }
             }
         }
@@ -149,30 +150,30 @@ void Basic::resizeEvent(QResizeEvent *event)
             if(view.width() < width() && width() < baseSize().width() && height() <= view.height()){               
                 tempW = height()* baseW / baseH;
                 tempH = height();
-                qDebug() << "2 1";                
+                //qDebug() << "2 1";                
             }
             else{
                 if(height() <= width()* baseH / baseW){
                     tempW = height()* baseW / baseH;
                     tempH = height();
-                    qDebug() << "2 3";
+                    //qDebug() << "2 3";
                 }
                 else{
                     tempW = width();
                     tempH = width()* baseH / baseW;
-                    qDebug() << "2 2"; 
+                    //qDebug() << "2 2"; 
                 }
             }         
         }
         else if(height() > baseH){
             tempW = width();
             tempH = width() * baseH / baseW;
-            qDebug() << "3";
+            //qDebug() << "3";
         }
         else if(height() < baseH){
             tempH = height();
             tempW = height()*baseW / baseH;
-            qDebug() << "4";
+            //qDebug() << "4";
         }
         
         
@@ -180,14 +181,19 @@ void Basic::resizeEvent(QResizeEvent *event)
         viewLastH = view.height();
         lastHeight = tempH;
         lastWidth = tempW;
-        
         view.resize(tempW,tempH);
-        view.scale(view.width()/qreal(viewLastW), view.width()/qreal(viewLastW));
+        view.scale(view.width()/qreal(viewLastW), view.width()/qreal(viewLastW)); 
+        //scene.setSceneRect(0,0,tempW+1,tempH+1);                
         
+        //view.centerOn(0,0);           
+      
         //将view居中
         view.move(width()/2 - view.width()/2, height()/2 - view.height()/2);
-        view.centerOn(0,0);           
     }
+    else if(type ==WindowType::Debug){
+        view.resize(width(),height());
+    }
+    else if(type == WindowType::Free) return;
     return;
 }
 

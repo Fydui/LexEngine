@@ -6,14 +6,18 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     Basic w(WindowType::ScaleIn,nullptr);
-    int t = w.heightForWidth(1280);
     
-    Item my("C:/My/code/MyObj/MengDie_Widget/resources/Lexington/UI/user_detail_bg1.png");
+    Item my("C:/My/code/MyObj/MengDie_Widget/resources/Lexington/UI/user_detail_bg1.png",0,0);
     w.addItem(my);
     
-    Item my1("C:/My/code/MyObj/MengDie_Widget/resources/Lexington/image/Lexington_Strap_bikini.png");
-    w.addItem(my1);
-
+    //Item my1("C:/My/code/MyObj/MengDie_Widget/resources/Lexington/image/Lexington_Strap_bikini.png");
+    //w.addItem(my1);
+    
+    Item my2("E:/文档/图片/沈霍伊.jpg");
+    w.addItem(my2);
+    my2.moveBy(600,300);
+    my.moveBy(0,0);
+    
     //w.removeItem(my1);
     
     w.show();
