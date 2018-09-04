@@ -98,8 +98,11 @@ void Basic::addScene(Scene &s)
 }
 void Basic::addItem(Item &i)
 {
-    i.moveBy(i.px,i.py); 
-    scene.addItem(&i);
+    qDebug() << i.getItemPoint().x() << i.getItemPoint().y()<< i.getScaleValue().scaleValue;
+    i.moveItem(i.getItemPoint().x(),i.getItemPoint().y()); //处理Item类构造函数中的移动参数
+    i.setScale(i.getScaleValue().scaleValue,i.getScaleValue().anchorPointType);    //处理Item类构造函数中的缩放参数
+    
+    scene.addItem(&i);  //添加进scene
 }
 void Basic::removeItem(Item &i)
 {

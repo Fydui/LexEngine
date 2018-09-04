@@ -32,18 +32,28 @@ public:
 
 class Item : public QGraphicsItem
 {
+    struct ScaleValue{qreal scaleValue;
+                      AnchorPoint anchorPointType; };
 public:
     Item(){}
-    Item(QString path, qreal x = 0, qreal y = 0);
-    //void setScale(qreal a, AnchorPoint ap = Center);   
+    Item(QString path, qreal x = 0, qreal y = 0, qreal k = 1, AnchorPoint ap = AnchorPoint::UpperLeftCorner);
+    void setScale(qreal x, AnchorPoint ap = UpperLeftCorner); //按照某锚点缩放图元
+    void moveItem(qreal x, qreal y);
+    QPointF getItemPoint();
+    ScaleValue getScaleValue();  
     ~Item();
-    qreal px;
-    qreal py;
+
     
 private:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget);
     QRectF boundingRect() const;
     QPixmap pix;
+    QPointF itemPoint;
+    ScaleValue scaleValue;
+    //qreal px = 0; //横坐标
+    //qreal py = 0; //纵坐标
+    //qreal scaleValue = 1;  //缩放倍数
+    //AnchorPoint anchorPointType = AnchorPoint::UpperLeftCorner; //缩放锚点当前模式
     
 };
 
