@@ -26,7 +26,7 @@ Basic::Basic(WindowType t, QWidget *parent)
     //setWindowFlag(Qt::WindowTitleHint);
     viewLastH = lastHeight = windowHeight;
     viewLastW = lastWidth = windowWidth;
-    type = t;
+    windowType = t;
     
 }
 
@@ -36,7 +36,7 @@ Basic::~Basic()
 {
 }
 
-void Basic::getWindowSize()
+void Basic::getScreenPara()
 {
     QDesktopWidget desktopWidget;
     QRect deskRect = desktopWidget.availableGeometry(); //获得可用窗口大小(去除通知栏/任务栏的大小)
@@ -60,6 +60,11 @@ void Basic::setWindowSize(int w, int h)
     deskWidth = w;
     
     
+}
+
+QPoint Basic::getWindowSize()
+{
+    return QPoint(windowHeight,windowWidth);
 }
 
 void Basic::setFixed(WindowType s)
@@ -92,16 +97,19 @@ void Basic::setFixed(WindowType s)
     }
 }
 
+WindowType Basic::getFixedValue(){
+    return windowType;
+}
+
 void Basic::addScene(Scene &s)
 {
     view.setScene(&s);
 }
 void Basic::addItem(Item &i)
 {
-    qDebug() << i.getItemPoint().x() << i.getItemPoint().y()<< i.getScaleValue().scaleValue;
-    i.moveItem(i.getItemPoint().x(),i.getItemPoint().y()); //处理Item类构造函数中的移动参数
-    i.setScale(i.getScaleValue().scaleValue,i.getScaleValue().anchorPointType);    //处理Item类构造函数中的缩放参数
-    
+    i.moveItem(i.getItemValue().point.x(), i.getItemValue().point.y(), i.getItemValue().anchor);  //处理Item类构造函数中的移动参数
+    i.setItemScale(i.getScaleValue().value,i.getScaleValue().anchor);    //处理Item类构造函数中的缩放参数
+    i.setItemRotation(i.getRotationValue().value,i.getRotationValue().anchor);
     scene.addItem(&i);  //添加进scene
 }
 void Basic::removeItem(Item &i)
@@ -119,14 +127,14 @@ void Basic::resizeEvent(QResizeEvent *event)
     if(w == h == 0)
         return;//resize(event->oldSize());
     if(w != 0 && h != 0)*/
-    if(type == WindowType::Scale){      //scale模式: 缩放窗口时 窗口大小和窗口内画面全部会符合某个比例
+    if(windowType == WindowType::Scale){      //scale模式: 缩放窗口时 窗口大小和窗口内画面全部会符合某个比例
         if(timerEventFlag){
             killTimer(timerEventFlag); 
             timerEventFlag = 0;
         }
         timerEventFlag = startTimer(50); //使用计时器拉开resizeEvent触发间隔 避免内循环(resizeEvent <-> resize)
     }
-    else if(type == WindowType::ScaleIn){//scaleIn模式 缩放窗口时 仅窗口内内容保持以某个比例缩放
+    else if(windowType == WindowType::ScaleIn){//scaleIn模式 缩放窗口时 仅窗口内内容保持以某个比例缩放
         
         int tempW = baseSize().width(), tempH = baseSize().height();
         int baseW = baseSize().width(), baseH = baseSize().height();
@@ -194,16 +202,16 @@ void Basic::resizeEvent(QResizeEvent *event)
         //将view居中
         view.move(width()/2 - view.width()/2, height()/2 - view.height()/2);
     }
-    else if(type ==WindowType::Debug){
+    else if(windowType ==WindowType::Debug){
         view.resize(width(),height());
     }
-    else if(type == WindowType::Free) return;
+    else if(windowType == WindowType::Free) return;
     return;
 }
 
 void Basic::timerEvent(QTimerEvent *event)
 {       
-    getWindowSize();  //获取屏幕大小等信息
+    getScreenPara();  //获取屏幕大小等信息
     int viewSceneW = 0, viewSceneH = 0;
     
     if(width() == deskWidth && height() == deskHeight){       //如果窗口最大化, 则对其进行显示优化
