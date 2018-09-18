@@ -44,6 +44,8 @@ public:
     Item(QString path, qreal x = 0, qreal y = 0, qreal k = 1,
          AnchorPoint scalePoint = UpperLeftCorner, qreal rotation = 0,
          AnchorPoint rotationPoint = Center);
+    Item(const Item& i);            //拷贝构造函数
+    Item& operator=(const Item& i);
     
     void setItemScale(qreal x, AnchorPoint ap = UpperLeftCorner);       //按照某锚点缩放图元
     void setItemRotation(qreal f,AnchorPoint ap = Center);              //按照某锚点旋转图元
@@ -59,6 +61,7 @@ private:
     QRectF boundingRect() const; //绘制范围
     QPointF getAnchorValue(AnchorPoint ap = UpperLeftCorner);
     QPixmap pix;
+    QString pixPath;
     PointValue itemValue;        //图元坐标
     PointValue scaleValue;       //缩放参数
     PointValue rotationValue;    //旋转参数

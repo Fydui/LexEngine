@@ -6,7 +6,29 @@ Item::Item(QString path, qreal x, qreal y, qreal k, AnchorPoint scalePoint
     itemValue.point.setY(y);
     setItemScale(k,scalePoint);
     setItemRotation(rotation,rotationPoint);
+    pixPath = path;
     pix.load(path); //加载图片  
+}
+
+Item::Item(const Item &i)
+{
+    itemValue.point.setX(i.itemValue.point.x());
+    itemValue.point.setY(i.itemValue.point.y());
+    setItemScale(i.scaleValue.value,i.scaleValue.anchor);
+    setItemRotation(i.rotationValue.value,i.rotationValue.anchor);
+    pixPath = i.pixPath;
+    pix.load(i.pixPath); //加载图片
+}
+
+Item &Item::operator=(const Item &i)
+{   
+    itemValue.point.setX(i.itemValue.point.x());
+    itemValue.point.setY(i.itemValue.point.y());
+    setItemScale(i.scaleValue.value,i.scaleValue.anchor);
+    setItemRotation(i.rotationValue.value,i.rotationValue.anchor);
+    pixPath = i.pixPath;    
+    pix.load(i.pixPath); //加载图片  
+    return *this;
 }
 
 Item::~Item(){
@@ -17,6 +39,7 @@ void Item::setItemScale(qreal x, AnchorPoint ap)
 {        
     QGraphicsItem::setScale(x);                 //放大图元
     scaleValue.value = x;
+    scaleValue.anchor = ap;
     getAnchorValue(ap);
     
 }
@@ -33,6 +56,7 @@ void Item::setItemRotation(qreal f, AnchorPoint ap)
 void Item::moveItem(qreal x, qreal y, AnchorPoint ap){
     QPointF temp = getAnchorValue(ap);
     itemValue.anchor =ap;    
+    
     moveBy(x + temp.x(),y + temp.y());
 }
 
@@ -86,6 +110,7 @@ QPointF Item::getAnchorValue(AnchorPoint ap)
         itemValue.point.rx() += -(F.width() - pix.width()/2);
         itemValue.point.ry() += -(F.height() - pix.height()/2);
     }
+    
     return QPointF(itemValue.point);
     
 }
