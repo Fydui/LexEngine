@@ -1,12 +1,20 @@
 ﻿#include "item.h"
-Item::Item(QString path, qreal x, qreal y, qreal k, AnchorPoint scalePoint 
-           ,qreal rotation ,AnchorPoint rotationPoint)
-{
+#include "game.h"
+extern game* g;
+Item::Item(QString path, qreal x, qreal y, QString f)
+{   
+   
     itemValue.point.setX(x);
     itemValue.point.setY(y);
-    setItemScale(k,scalePoint);
-    setItemRotation(rotation,rotationPoint);
+    setItemScale(1,AnchorPoint::UpperLeftCorner);
+    setItemRotation(0,AnchorPoint::Center);
     pixPath = path;
+    fun = f;
+
+    
+    //connect(this,SIGNAL(ItemClickedPress()),g,SLOT());
+    //QMetaObject::invokeMethod(g,ch, Qt::DirectConnection);
+    
     pix.load(path); //加载图片  
 }
 
@@ -20,7 +28,7 @@ Item::Item(const Item &i)
     pix.load(i.pixPath); //加载图片
 }
 
-Item &Item::operator=(const Item &i)
+Item &Item::operator=(const Item i)
 {   
     itemValue.point.setX(i.itemValue.point.x());
     itemValue.point.setY(i.itemValue.point.y());
@@ -32,6 +40,7 @@ Item &Item::operator=(const Item &i)
 }
 
 Item::~Item(){
+    
     pix = QPixmap();
 }
 
@@ -113,6 +122,39 @@ QPointF Item::getAnchorValue(AnchorPoint ap)
     
     return QPointF(itemValue.point);
     
+}
+
+void Item::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    QPointF pos = event->buttonDownPos(Qt::LeftButton); //获取鼠标在Item中的落点
+    QRgb rgb = pix.toImage().pixel(pos.toPoint());      //获得当前坐标的像素的rgb
+    
+    /*QList<QGraphicsItem*> iList;
+    if(rgb ==0){
+        iList = scene()->items(pos);
+        for (auto temp : iList) {
+            
+            QRgb newrgb = i.pix.toImage().pixel(pos.toPoint());
+            if(newrgb != 0){
+                i.mousePressEvent(event);
+                return;
+            }
+        }
+    }
+    int a = 0;*/
+    //QObject::connect(this,SIGNAL(pressEvent),g,fun);
+    qDebug() << pixPath<<" "<< QString::number(rgb,16) << " " << " 按下\n";
+    const char* ch;
+    QByteArray ba = fun.toLatin1();
+    ch = ba.data();
+    QMetaObject::invokeMethod(g,ch, Qt::DirectConnection);
+    
+}
+
+void Item::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    
+    //qDebug() <<pixPath<< "抬起\n";
 }
 
 

@@ -1,36 +1,35 @@
 ﻿#include "basic.h"
-
-
-
 Basic::Basic( QWidget *parent)
     : QWidget(parent)
 {
     setWindowTitle(titleName);
     setBaseSize(windowWidth,windowHeight);
     view.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);       //关闭横竖滚动栏
-    view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);   
+    view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);  
+    
+    setFixed(WindowType::ScaleIn);
+    view.setParent(this);
+    view.resize(windowWidth,windowHeight);          //设置视图范围      
+    view.setScene(&scene);
+    scene.setSceneRect(0,0,windowWidth,windowHeight);
+    viewLastH = lastHeight = windowHeight;
+    viewLastW = lastWidth = windowWidth;
+    windowType = WindowType::ScaleIn;
 }
-
+/*
 Basic::Basic(WindowType t, QWidget *parent)
     : Basic(parent)
 {    
     setFixed(t);
     view.setParent(this);
-    //scene.addPixmap(QPixmap("C:/My/code/MyObj/MengDie_Widget/resources/image/Lexington_Strap_bikini.png"));
-    //scene.addText("Hello");
-    //scene.setParent(this);
     view.resize(windowWidth,windowHeight);          //设置视图范围      
     view.setScene(&scene);
     scene.setSceneRect(0,0,windowWidth,windowHeight);
-    //setWindowFlags(Qt::FramelessWindowHint);
-    //setWindowFlag(Qt::WindowTitleHint);
     viewLastH = lastHeight = windowHeight;
     viewLastW = lastWidth = windowWidth;
     windowType = t;
     
-}
-
-
+}*/
 
 Basic::~Basic()
 {
@@ -47,8 +46,7 @@ void Basic::getScreenPara()
     
     deskHeight = screenRect.height();
     deskWidth = screenRect.width();
-    
-    
+ 
 }
 
 void Basic::setWindowSize(int w, int h)
@@ -57,9 +55,7 @@ void Basic::setWindowSize(int w, int h)
     screenWindowWidth = w; 
     
     deskHeight = h;
-    deskWidth = w;
-    
-    
+    deskWidth = w;    
 }
 
 QPoint Basic::getWindowSize()
@@ -93,7 +89,6 @@ void Basic::setFixed(WindowType s)
             x = y;
             y = temp;
         }*/
-        
     }
 }
 
@@ -105,12 +100,23 @@ void Basic::addScene(Scene &s)
 {
     view.setScene(&s);
 }
-void Basic::addItem(Item &i)
+void Basic::addItem(Item* i)
 {
+    /*
     i.moveItem(i.getItemValue().point.x(), i.getItemValue().point.y(), i.getItemValue().anchor);  //处理Item类构造函数中的移动参数
     i.setItemScale(i.getScaleValue().value,i.getScaleValue().anchor);    //处理Item类构造函数中的缩放参数
-    i.setItemRotation(i.getRotationValue().value,i.getRotationValue().anchor);
-    scene.addItem(&i);  //添加进scene
+    i.setItemRotation(i.getRotationValue().value,i.getRotationValue().anchor);*/
+    i->moveItem(i->getItemValue().point.x(), i->getItemValue().point.y(), i->getItemValue().anchor);  //处理Item类构造函数中的移动参数
+    i->setItemScale(i->getScaleValue().value,i->getScaleValue().anchor);    //处理Item类构造函数中的缩放参数
+    i->setItemRotation(i->getRotationValue().value,i->getRotationValue().anchor);
+    //scene.addItem(i);  //添加进scene
+    scene.QGraphicsScene::addItem(i);
+}
+Item *Basic::addItem(QString path, int x, int y,  QString fun)
+{
+    Item* temp = new Item(path,x,y,fun);
+    scene.addItem(temp);
+    return temp;
 }
 void Basic::removeItem(Item &i)
 {
@@ -118,15 +124,14 @@ void Basic::removeItem(Item &i)
     i.~Item();
 }
 
+void Basic::removeItem(Item *i)
+{
+    scene.removeItem(i);
+    i->~Item();
+}
+
 void Basic::resizeEvent(QResizeEvent *event)
 {
-    /*qDebug() << judgeHeightRatio();
-    qDebug() << judgeWidthRatio();
-    int w = judgeWidthRatio();
-    int h = judgeHeightRatio();
-    if(w == h == 0)
-        return;//resize(event->oldSize());
-    if(w != 0 && h != 0)*/
     if(windowType == WindowType::Scale){      //scale模式: 缩放窗口时 窗口大小和窗口内画面全部会符合某个比例
         if(timerEventFlag){
             killTimer(timerEventFlag); 
